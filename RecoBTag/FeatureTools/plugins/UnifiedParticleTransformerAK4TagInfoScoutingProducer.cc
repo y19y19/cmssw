@@ -59,10 +59,10 @@ class HistogramProbabilityEstimator;
 #include "FWCore/Framework/interface/EventSetupRecordKey.h"
 #include "DataFormats/Common/interface/AssociationMap.h"
 
-class UnifiedParticleTransformerAK4TagInfoProducer : public edm::stream::EDProducer<> {
+class UnifiedParticleTransformerAK4TagInfoScoutingProducer : public edm::stream::EDProducer<> {
 public:
-  explicit UnifiedParticleTransformerAK4TagInfoProducer(const edm::ParameterSet&);
-  ~UnifiedParticleTransformerAK4TagInfoProducer() override = default;
+  explicit UnifiedParticleTransformerAK4TagInfoScoutingProducer(const edm::ParameterSet&);
+  ~UnifiedParticleTransformerAK4TagInfoScoutingProducer() override = default;
 
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
@@ -106,7 +106,7 @@ private:
   const double max_jet_eta_;
 };
 
-UnifiedParticleTransformerAK4TagInfoProducer::UnifiedParticleTransformerAK4TagInfoProducer(
+UnifiedParticleTransformerAK4TagInfoScoutingProducer::UnifiedParticleTransformerAK4TagInfoScoutingProducer(
     const edm::ParameterSet& iConfig)
     : jet_radius_(iConfig.getParameter<double>("jet_radius")),
       min_candidate_pt_(iConfig.getParameter<double>("min_candidate_pt")),
@@ -160,7 +160,7 @@ UnifiedParticleTransformerAK4TagInfoProducer::UnifiedParticleTransformerAK4TagIn
   }
 }
 
-void UnifiedParticleTransformerAK4TagInfoProducer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+void UnifiedParticleTransformerAK4TagInfoScoutingProducer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   // pfUnifiedParticleTransformerAK4TagInfos
   edm::ParameterSetDescription desc;
   desc.add<double>("jet_radius", 0.4);
@@ -181,10 +181,10 @@ void UnifiedParticleTransformerAK4TagInfoProducer::fillDescriptions(edm::Configu
   desc.add<bool>("is_weighted_jet", false);
   desc.add<double>("min_jet_pt", 0.0);
   desc.add<double>("max_jet_eta", 2.5);
-  descriptions.add("pfUnifiedParticleTransformerAK4TagInfos", desc);
+  descriptions.add("pfUnifiedParticleTransformerAK4TagInfosScouting", desc);
 }
 
-void UnifiedParticleTransformerAK4TagInfoProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
+void UnifiedParticleTransformerAK4TagInfoScoutingProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto output_tag_infos = std::make_unique<UnifiedParticleTransformerAK4TagInfoCollection>();
   edm::Handle<edm::View<reco::Jet>> jets;
   iEvent.getByToken(jet_token_, jets);
@@ -559,4 +559,4 @@ void UnifiedParticleTransformerAK4TagInfoProducer::produce(edm::Event& iEvent, c
 }
 
 //define this as a plug-in
-DEFINE_FWK_MODULE(UnifiedParticleTransformerAK4TagInfoProducer);
+DEFINE_FWK_MODULE(UnifiedParticleTransformerAK4TagInfoScoutingProducer);

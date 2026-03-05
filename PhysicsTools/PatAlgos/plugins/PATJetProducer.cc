@@ -330,14 +330,12 @@ void PATJetProducer::produce(edm::Event &iEvent, const edm::EventSetup &iSetup) 
       iEvent.getRefBeforePut<reco::PFCandidateCollection>("pfCandidates");
   edm::RefProd<edm::OwnVector<reco::BaseTagInfo>> h_tagInfosOut =
       iEvent.getRefBeforePut<edm::OwnVector<reco::BaseTagInfo>>("tagInfos");
-
   for (edm::View<reco::Jet>::const_iterator itJet = jets->begin(); itJet != jets->end(); itJet++) {
     // construct the Jet from the ref -> save ref to original object
     unsigned int idx = itJet - jets->begin();
     edm::RefToBase<reco::Jet> jetRef = jets->refAt(idx);
     edm::Ptr<reco::Jet> jetPtr = jets->ptrAt(idx);
     Jet ajet(jetRef);
-
     // add the FwdPtrs to the CaloTowers
     if ((ajet.isCaloJet() || ajet.isJPTJet()) && embedCaloTowers_) {
       const reco::CaloJet *cj = nullptr;
@@ -391,7 +389,6 @@ void PATJetProducer::produce(edm::Event &iEvent, const edm::EventSetup &iSetup) 
       }
       ajet.setPFCandidates(iparticlesRef);
     }
-
     if (addJetCorrFactors_) {
       // add additional JetCorrs to the jet
       for (unsigned int i = 0; i < jetCorrFactorsTokens_.size(); ++i) {
@@ -467,7 +464,8 @@ void PATJetProducer::produce(edm::Event &iEvent, const edm::EventSetup &iSetup) 
     if (addBTagInfo_) {
       if (addDiscriminators_) {
         for (size_t k = 0; k < jetDiscriminators.size(); ++k) {
-          float value = (*jetDiscriminators[k])[jetRef];
+	  float value = -1.;
+	  if ((*jetDiscriminators[k]).size() > 0) value = (*jetDiscriminators[k])[jetRef];
           ajet.addBDiscriminatorPair(std::make_pair(discriminatorLabels_[k], value));
         }
       }
@@ -504,7 +502,6 @@ void PATJetProducer::produce(edm::Event &iEvent, const edm::EventSetup &iSetup) 
         }
       }
     }
-
     if (addAssociatedTracks_)
       ajet.setAssociatedTracks((*hTrackAss)[jetRef]);
 

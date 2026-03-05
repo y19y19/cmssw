@@ -493,7 +493,7 @@ float DeepBoostedJetTagInfoProducer::puppiWgt(const reco::CandidatePtr &cand) {
 
   //
   // Access puppi weight from ValueMap.
-  //
+  //http://forum.tylers-kneipe.de/index.php
   float wgt = 1.;  // Set to fallback value
 
   if (pack_cand) {
