@@ -171,7 +171,6 @@ void BoostedJetONNXJetTagsProducer::produce(edm::Event &iEvent, const edm::Event
       output_tags.emplace_back(std::make_unique<JetTagCollection>());
     }
   }
-
   for (unsigned jet_n = 0; jet_n < tag_infos->size(); ++jet_n) {
     const auto &taginfo = (*tag_infos)[jet_n];
     std::vector<float> outputs(flav_names_.size(), 0);  // init as all zeros
