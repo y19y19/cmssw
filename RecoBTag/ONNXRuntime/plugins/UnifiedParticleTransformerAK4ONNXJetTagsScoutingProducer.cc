@@ -75,8 +75,9 @@ UnifiedParticleTransformerAK4ONNXJetTagsScoutingProducer::UnifiedParticleTransfo
     : src_(consumes<TagInfoCollection>(iConfig.getParameter<edm::InputTag>("src"))),
       flav_names_(iConfig.getParameter<std::vector<std::string>>("flav_names")),
       input_names_(iConfig.getParameter<std::vector<std::string>>("input_names")),
-      use_dynamic_axes_(iConfig.getParameter<edm::FileInPath>("model_path").fullPath().find("v2.onnx") !=
-                        std::string::npos),
+      //use_dynamic_axes_(iConfig.getParameter<edm::FileInPath>("model_path").fullPath().find("v2.onnx") !=
+      //                  std::string::npos),
+      use_dynamic_axes_(false),
       output_names_(iConfig.getParameter<std::vector<std::string>>("output_names")) {
   // get output names from flav_names
   for (const auto& flav_name : flav_names_) {
@@ -87,7 +88,7 @@ UnifiedParticleTransformerAK4ONNXJetTagsScoutingProducer::UnifiedParticleTransfo
 void UnifiedParticleTransformerAK4ONNXJetTagsScoutingProducer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   // pfUnifiedParticleTransformerAK4JetTags
   edm::ParameterSetDescription desc;
-  desc.add<edm::InputTag>("src", edm::InputTag("pfUnifiedParticleTransformerAK4TagInfos"));
+  desc.add<edm::InputTag>("src", edm::InputTag("pfUnifiedParticleTransformerAK4TagInfos")); // YY: it is overwritten as "scoutingPFJetReclusterPFUnifiedParticleTransformerAK4TagInfos"
   desc.add<std::vector<std::string>>(
       "input_names", {"input_1", "input_2", "input_3", "input_4", "input_5", "input_6"});
   desc.add<edm::FileInPath>("model_path",
@@ -95,6 +96,8 @@ void UnifiedParticleTransformerAK4ONNXJetTagsScoutingProducer::fillDescriptions(
   desc.add<std::vector<std::string>>("output_names", {"softmax"});
   desc.add<std::vector<std::string>>(
       "flav_names",
+      //std::vector<std::string>{"probb",        "probbb",       "problepb",     "probc",         "probuds",        "probg",
+      //                         "probtaum",     "probtaup"});//,     "ptcorr",       "ptreshigh",    "ptreslow"});
       std::vector<std::string>{"probb",        "probbb",       "problepb",     "probc",         "probs",
                                "probu",        "probd",        "probg",
                                "ptcorr",       "ptreshigh",    "ptreslow"});
@@ -144,6 +147,9 @@ void UnifiedParticleTransformerAK4ONNXJetTagsScoutingProducer::produce(edm::Even
                        {(int64_t)1, (int64_t)n_sv_, (int64_t)n_pairwise_features_sv_}};
 
       outputs = globalCache()->run(input_names_, data_, input_shapes_, output_names_, 1)[0];
+      std::cout << "YY: outputs.size(): " << outputs.size() << std::endl;
+      std::cout << "YY: flav_names_.size(): " << flav_names_.size() << std::endl;
+
       assert(outputs.size() == flav_names_.size());
     }
 
@@ -191,7 +197,7 @@ void UnifiedParticleTransformerAK4ONNXJetTagsScoutingProducer::get_input_sizes(
   // init data storage
   data_.clear();
   for (const auto& len : input_sizes_) {
-    data_.emplace_back(1 * len, 0);
+    data_.emplace_back(1 * len, 0.0);
   }
 
   make_inputs(features);
@@ -230,15 +236,28 @@ void UnifiedParticleTransformerAK4ONNXJetTagsScoutingProducer::make_inputs(
     *(++ptr) = c_pf_features.phi;
     *(++ptr) = c_pf_features.e;
 
-/*    *(++ptr) = c_pf_features.charge;
-    *(++ptr) = c_pf_features.dz;
-    *(++ptr) = c_pf_features.btagPf_trackDecayLen;
-    *(++ptr) = c_pf_features.HadFrac;
-    *(++ptr) = c_pf_features.CaloFrac;
-    *(++ptr) = c_pf_features.pdgID;
-    *(++ptr) = c_pf_features.lostInnerHits;
-    *(++ptr) = c_pf_features.numberOfPixelHits;
-    *(++ptr) = c_pf_features.numberOfStripHits;*/
+    std::cout << "c_pf " << c_pf_n << '\n'
+              << "  btagPf_trackEtaRel: " << c_pf_features.btagPf_trackEtaRel << '\n'
+              << "  btagPf_trackPtRel: " << c_pf_features.btagPf_trackPtRel << '\n'
+              << "  btagPf_trackPPar: " << c_pf_features.btagPf_trackPPar << '\n'
+              << "  btagPf_trackDeltaR: " << c_pf_features.btagPf_trackDeltaR << '\n'
+              << "  btagPf_trackPParRatio: " << c_pf_features.btagPf_trackPParRatio << '\n'
+              << "  btagPf_trackSip2dVal: " << c_pf_features.btagPf_trackSip2dVal << '\n'
+              << "  btagPf_trackSip2dSig: " << c_pf_features.btagPf_trackSip2dSig << '\n'
+              << "  btagPf_trackSip3dVal: " << c_pf_features.btagPf_trackSip3dVal << '\n'
+              << "  btagPf_trackSip3dSig: " << c_pf_features.btagPf_trackSip3dSig << '\n'
+              << "  btagPf_trackJetDistVal: " << c_pf_features.btagPf_trackJetDistVal << '\n'
+              << "  ptrel: " << c_pf_features.ptrel << '\n'
+              << "  drminsv: " << c_pf_features.drminsv << '\n'
+              << "  vtx_ass: " << c_pf_features.vtx_ass << '\n'
+              << "  puppiw: " << c_pf_features.puppiw << '\n'
+              << "  chi2: " << c_pf_features.chi2 << '\n'
+              << "  quality: " << c_pf_features.quality << '\n'
+              << "  pt: " << c_pf_features.pt << '\n'
+              << "  eta: " << c_pf_features.eta << '\n'
+              << "  phi: " << c_pf_features.phi << '\n'
+              << "  e: " << c_pf_features.e << '\n';
+
 
     assert(start + n_features_cpf_ - 1 == ptr);
   }
@@ -281,13 +300,26 @@ void UnifiedParticleTransformerAK4ONNXJetTagsScoutingProducer::make_inputs(
 //    *(++ptr) = n_pf_features.phirel;
     *(++ptr) = n_pf_features.deltaR;
     *(++ptr) = n_pf_features.isGamma;
-    *(++ptr) = n_pf_features.hadFrac;
+    *(++ptr) = 1.0; // YY: replace with some random number
+    //*(++ptr) = n_pf_features.hadFrac;
     *(++ptr) = n_pf_features.drminsv;
     *(++ptr) = n_pf_features.puppiw;
     *(++ptr) = n_pf_features.pt;
     *(++ptr) = n_pf_features.eta;
     *(++ptr) = n_pf_features.phi;
     *(++ptr) = n_pf_features.e;
+
+    std::cout << "n_pf " << n_pf_n << '\n'
+              << "  ptrel: " << n_pf_features.ptrel << '\n'
+              << "  deltaR: " << n_pf_features.deltaR << '\n'
+              << "  isGamma: " << n_pf_features.isGamma << '\n'
+              << "  hadFrac: " << n_pf_features.hadFrac << '\n'
+              << "  drminsv: " << n_pf_features.drminsv << '\n'
+              << "  puppiw: " << n_pf_features.puppiw << '\n'
+              << "  pt: " << n_pf_features.pt << '\n'
+              << "  eta: " << n_pf_features.eta << '\n'
+              << "  phi: " << n_pf_features.phi << '\n'
+              << "  e: " << n_pf_features.e << '\n';
     assert(start + n_features_npf_ - 1 == ptr);
   }
 
@@ -314,6 +346,24 @@ void UnifiedParticleTransformerAK4ONNXJetTagsScoutingProducer::make_inputs(
     *(++ptr) = sv_features.eta;
     *(++ptr) = sv_features.phi;
     *(++ptr) = sv_features.e;
+
+    std::cout << "sv " << sv_n << '\n'
+              << "  deltaR: " << sv_features.deltaR << '\n'
+              << "  mass: " << sv_features.mass << '\n'
+              << "  ntracks: " << sv_features.ntracks << '\n'
+              << "  chi2: " << sv_features.chi2 << '\n'
+              << "  normchi2: " << sv_features.normchi2 << '\n'
+              << "  dxy: " << sv_features.dxy << '\n'
+              << "  dxysig: " << sv_features.dxysig << '\n'
+              << "  d3d: " << sv_features.d3d << '\n'
+              << "  d3dsig: " << sv_features.d3dsig << '\n'
+              << "  costhetasvpv: " << sv_features.costhetasvpv << '\n'
+              << "  enratio: " << sv_features.enratio << '\n'
+              << "  pt: " << sv_features.pt << '\n'
+              << "  eta: " << sv_features.eta << '\n'
+              << "  phi: " << sv_features.phi << '\n'
+              << "  e: " << sv_features.e << '\n';
+
     assert(start + n_features_sv_ - 1 == ptr);
   }
 
@@ -323,9 +373,9 @@ void UnifiedParticleTransformerAK4ONNXJetTagsScoutingProducer::make_inputs(
     const auto& cpf_pairwise_features = features.c_pf_features.at(cpf_n);
     ptr = &data_[kChargedCandidates4Vec][offset + cpf_n * n_pairwise_features_cpf_];
     start = ptr;
-    *ptr = cpf_pairwise_features.px;
-    *(++ptr) = cpf_pairwise_features.py;
-    *(++ptr) = cpf_pairwise_features.pz;
+    *ptr = cpf_pairwise_features.px; // px
+    *(++ptr) = cpf_pairwise_features.py; // py
+    *(++ptr) = cpf_pairwise_features.pz; // pz
     *(++ptr) = cpf_pairwise_features.e;
 
     assert(start + n_pairwise_features_cpf_ - 1 == ptr);
@@ -351,9 +401,9 @@ void UnifiedParticleTransformerAK4ONNXJetTagsScoutingProducer::make_inputs(
     const auto& npf_pairwise_features = features.n_pf_features.at(npf_n);
     ptr = &data_[kNeutralCandidates4Vec][offset + npf_n * n_pairwise_features_npf_];
     start = ptr;
-    *ptr = npf_pairwise_features.px;
-    *(++ptr) = npf_pairwise_features.py;
-    *(++ptr) = npf_pairwise_features.pz;
+    *ptr = npf_pairwise_features.px; // px
+    *(++ptr) = npf_pairwise_features.py; // py
+    *(++ptr) = npf_pairwise_features.pz; // pz
     *(++ptr) = npf_pairwise_features.e;
 
     assert(start + n_pairwise_features_npf_ - 1 == ptr);
@@ -372,6 +422,8 @@ void UnifiedParticleTransformerAK4ONNXJetTagsScoutingProducer::make_inputs(
 
     assert(start + n_pairwise_features_sv_ - 1 == ptr);
   }
+  std::cout << "YY: inputs: max_cpf_n: " << max_cpf_n << " max_npf_n: " << max_npf_n << "max_sv_n: " << max_sv_n << std::endl;
+
 }
 
 //define this as a plug-in
