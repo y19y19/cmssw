@@ -92,7 +92,7 @@ void UnifiedParticleTransformerAK4ONNXJetTagsScoutingProducer::fillDescriptions(
   desc.add<std::vector<std::string>>(
       "input_names", {"input_1", "input_2", "input_3", "input_4", "input_5", "input_6"});
   desc.add<edm::FileInPath>("model_path",
-                            edm::FileInPath("RecoBTag/Combined/data/UParTAK4/Scouting/V00/modelfile/model.onnx"));
+                            edm::FileInPath("RecoBTag/Combined/data/UParTAK4/Scouting/V00/modelfile/model.onnx")); // YY: this is overwritten in ScoutingTranslator
   desc.add<std::vector<std::string>>("output_names", {"softmax"});
   desc.add<std::vector<std::string>>(
       "flav_names",
@@ -100,7 +100,7 @@ void UnifiedParticleTransformerAK4ONNXJetTagsScoutingProducer::fillDescriptions(
       //                         "probtaum",     "probtaup"});//,     "ptcorr",       "ptreshigh",    "ptreslow"});
       std::vector<std::string>{"probb",        "probbb",       "problepb",     "probc",         "probs",
                                "probu",        "probd",        "probg",
-                               "ptcorr",       "ptreshigh",    "ptreslow"});
+                               "ptcorr",       "ptreshigh",    "ptreslow"}); // YY: this is overwritten in ScoutingTranslator
 
   descriptions.add("pfUnifiedParticleTransformerAK4JetTagsScouting", desc);
 }
@@ -236,6 +236,7 @@ void UnifiedParticleTransformerAK4ONNXJetTagsScoutingProducer::make_inputs(
     *(++ptr) = c_pf_features.phi;
     *(++ptr) = c_pf_features.e;
 
+    /*
     std::cout << "c_pf " << c_pf_n << '\n'
               << "  btagPf_trackEtaRel: " << c_pf_features.btagPf_trackEtaRel << '\n'
               << "  btagPf_trackPtRel: " << c_pf_features.btagPf_trackPtRel << '\n'
@@ -257,7 +258,7 @@ void UnifiedParticleTransformerAK4ONNXJetTagsScoutingProducer::make_inputs(
               << "  eta: " << c_pf_features.eta << '\n'
               << "  phi: " << c_pf_features.phi << '\n'
               << "  e: " << c_pf_features.e << '\n';
-
+    */
 
     assert(start + n_features_cpf_ - 1 == ptr);
   }
@@ -309,6 +310,7 @@ void UnifiedParticleTransformerAK4ONNXJetTagsScoutingProducer::make_inputs(
     *(++ptr) = n_pf_features.phi;
     *(++ptr) = n_pf_features.e;
 
+    /*
     std::cout << "n_pf " << n_pf_n << '\n'
               << "  ptrel: " << n_pf_features.ptrel << '\n'
               << "  deltaR: " << n_pf_features.deltaR << '\n'
@@ -320,6 +322,7 @@ void UnifiedParticleTransformerAK4ONNXJetTagsScoutingProducer::make_inputs(
               << "  eta: " << n_pf_features.eta << '\n'
               << "  phi: " << n_pf_features.phi << '\n'
               << "  e: " << n_pf_features.e << '\n';
+    */
     assert(start + n_features_npf_ - 1 == ptr);
   }
 
@@ -347,6 +350,7 @@ void UnifiedParticleTransformerAK4ONNXJetTagsScoutingProducer::make_inputs(
     *(++ptr) = sv_features.phi;
     *(++ptr) = sv_features.e;
 
+    /*
     std::cout << "sv " << sv_n << '\n'
               << "  deltaR: " << sv_features.deltaR << '\n'
               << "  mass: " << sv_features.mass << '\n'
@@ -363,7 +367,7 @@ void UnifiedParticleTransformerAK4ONNXJetTagsScoutingProducer::make_inputs(
               << "  eta: " << sv_features.eta << '\n'
               << "  phi: " << sv_features.phi << '\n'
               << "  e: " << sv_features.e << '\n';
-
+    */
     assert(start + n_features_sv_ - 1 == ptr);
   }
 
@@ -422,7 +426,7 @@ void UnifiedParticleTransformerAK4ONNXJetTagsScoutingProducer::make_inputs(
 
     assert(start + n_pairwise_features_sv_ - 1 == ptr);
   }
-  std::cout << "YY: inputs: max_cpf_n: " << max_cpf_n << " max_npf_n: " << max_npf_n << "max_sv_n: " << max_sv_n << std::endl;
+  //std::cout << "YY: inputs: max_cpf_n: " << max_cpf_n << " max_npf_n: " << max_npf_n << "max_sv_n: " << max_sv_n << std::endl;
 
 }
 
