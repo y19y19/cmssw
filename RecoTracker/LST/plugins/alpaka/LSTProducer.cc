@@ -35,6 +35,9 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
           lstOutputToken_{produces()} {}
 
     void produce(edm::StreamID sid, device::Event& iEvent, const device::EventSetup& iSetup) const override {
+      // YY: break point
+      std::cout << "YY: Start LSTProducer::produce" << std::endl;
+
       lst::LST lst;
       // Inputs
       auto const& lstInputDC = iEvent.get(lstInputToken_);

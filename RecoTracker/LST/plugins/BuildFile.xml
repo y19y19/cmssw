@@ -1,5 +1,6 @@
 <!-- host-only plugins -->
 <library file="*.cc" name="RecoTrackerLSTPlugins">
+  <use name="DataFormats/Common"/>
   <use name="DataFormats/TrackCandidate"/>
   <use name="DataFormats/TrackReco"/>
   <use name="DataFormats/TrackerRecHit2D"/>
@@ -20,6 +21,7 @@
   <use name="TrackingTools/Records"/>
   <use name="TrackingTools/TrajectoryState"/>
   <use name="TrackingTools/TransientTrackingRecHit"/>
+  <use name="HeterogeneousCore/SonicTriton"/>
   <flags EDM_PLUGIN="1"/>
 </library>
 

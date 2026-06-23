@@ -1,3 +1,7 @@
+#include <fstream>
+#include <sstream>
+#include <string>
+
 #include "DataFormats/TrackerRecHit2D/interface/Phase2TrackerRecHit1D.h"
 #include "DataFormats/TrackerRecHit2D/interface/SiPixelRecHitCollection.h"
 #include "DataFormats/TrackCandidate/interface/TrackCandidateCollection.h"
@@ -97,6 +101,8 @@ void LSTOutputConverter::fillDescriptions(edm::ConfigurationDescriptions& descri
   edm::ParameterSetDescription desc;
 
   desc.add<edm::InputTag>("lstOutput", edm::InputTag("lstProducer"));
+  //desc.add<edm::InputTag>("lstOutput", edm::InputTag("lstSONICProducer")); 
+  // YY: I guess Jan means that it is not needed as it is replaced by processModifier?
   desc.add<edm::InputTag>("lstInput", edm::InputTag("lstInputProducer"));
   desc.add<edm::InputTag>("lstPixelSeeds", edm::InputTag("lstInputProducer"));
   desc.add<bool>("includeT5s", true);
@@ -119,6 +125,8 @@ void LSTOutputConverter::fillDescriptions(edm::ConfigurationDescriptions& descri
 }
 
 void LSTOutputConverter::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
+  // YY: break point
+  std::cout << "YY: Start LSTOutputConverter::produce" << std::endl;
   // Setup
   auto const& lstOutput = iEvent.get(lstOutputToken_);
   auto const& lstInputHC = iEvent.get(lstInputToken_);
@@ -128,7 +136,7 @@ void LSTOutputConverter::produce(edm::Event& iEvent, const edm::EventSetup& iSet
   auto const& propAlo = iSetup.getData(propagatorAlongToken_);
   auto const& propOppo = iSetup.getData(propagatorOppositeToken_);
   auto const& tracker = iSetup.getData(tGeomToken_);
-  const TrackerTopology& tTopo = iSetup.getData(tTopoToken_);
+  const TrackerTopology& tTopo = iSetup.getData(tTopoToken_); // YY: this is new? 
 
   auto lstOutput_view = lstOutput.const_view();
   unsigned int nTrackCandidates = lstOutput_view.nTrackCandidates();
@@ -149,6 +157,88 @@ void LSTOutputConverter::produce(edm::Event& iEvent, const edm::EventSetup& iSet
   auto OTHits = lstInputHC.const_view().hits().hits();
 
   LogDebug("LSTOutputConverter") << "nTrackCandidates " << nTrackCandidates;
+  /*
+  std::cout << "YY Output: " << std::endl;
+  std::cout << "nTrackCandidates: " << nTrackCandidates << std::endl;
+  std::cout << "pixelSeedIndex : size "   << lstOutput_view.pixelSeedIndex().size()
+            << " first element: " << lstOutput_view.pixelSeedIndex().front()
+            << " last element "   << lstOutput_view.pixelSeedIndex().back() << std::endl;
+  std::cout << "trackCandidateType : size "   << lstOutput_view.trackCandidateType().size()
+            << " first element: " << static_cast<int>(lstOutput_view.trackCandidateType().front())
+            << " last element "   << static_cast<int>(lstOutput_view.trackCandidateType().back()) << std::endl;
+  std::cout << "hitIndices : size "   << lstOutput_view.hitIndices().size() << std::endl;
+  std::cout << " first element: " << std::endl;
+  for (unsigned int layerSlot = lst::Params_TC::kPixelLayerSlots; layerSlot < lst::Params_TC::kLayers; ++layerSlot) {
+    for (unsigned int hitSlot = 0; hitSlot < lst::Params_TC::kHitsPerLayer; ++hitSlot) {
+      std::cout << lstOutput_view.hitIndices()[0][layerSlot][hitSlot] << " ";
+    }
+  }
+  std::cout << std::endl;
+  std::cout << " last element: " << std::endl;
+  for (unsigned int layerSlot = lst::Params_TC::kPixelLayerSlots; layerSlot < lst::Params_TC::kLayers; ++layerSlot) {
+    for (unsigned int hitSlot = 0; hitSlot < lst::Params_TC::kHitsPerLayer; ++hitSlot) {
+      std::cout << lstOutput_view.hitIndices()[lstOutput_view.hitIndices().size()-1][layerSlot][hitSlot] << " ";
+    }
+  }  
+  std::cout << std::endl;
+  */
+  // Write this event's outputs to LST_output.json.
+  // Format: {"data": [{event0}, {event1}, ...]} — same structure as LST_input.json.
+  // Each call opens the file, appends one entry, and closes it.
+  /*
+  {
+    std::ostringstream ev;
+    ev << "    {\n";
+    ev << "      \"nTrackCandidates\": [" << nTrackCandidates << "],\n";
+
+    ev << "      \"pixelSeedIndex\": [";
+    for (unsigned int i = 0; i < nTrackCandidates; ++i) {
+      if (i > 0) ev << ", ";
+      ev << lstOutput_view.pixelSeedIndex()[i];
+    }
+    ev << "],\n";
+
+    // Cast int8_t-backed enum to int so it serializes as a number, not a char.
+    ev << "      \"trackCandidateType\": [";
+    for (unsigned int i = 0; i < nTrackCandidates; ++i) {
+      if (i > 0) ev << ", ";
+      ev << static_cast<int>(lstOutput_view.trackCandidateType()[i]);
+    }
+    ev << "],\n";
+
+    // hitIndices flattened in row-major order: [tc0_layer0_hit0, tc0_layer0_hit1, tc0_layer1_hit0, ...]
+    ev << "      \"hitIndices\": [";
+    bool firstHit = true;
+    for (unsigned int i = 0; i < nTrackCandidates; ++i) {
+      for (unsigned int layer = 0; layer < lst::Params_TC::kLayers; ++layer) {
+        for (unsigned int hitSlot = 0; hitSlot < lst::Params_TC::kHitsPerLayer; ++hitSlot) {
+          if (!firstHit) ev << ", ";
+          ev << lstOutput_view.hitIndices()[i][layer][hitSlot];
+          firstHit = false;
+        }
+      }
+    }
+    ev << "]\n";
+
+    ev << "    }";
+    const std::string evStr = ev.str();
+
+    std::ifstream existingFile("LST_output.json");
+    if (!existingFile.good()) {
+      std::ofstream out("LST_output.json");
+      out << "{\n  \"data\": [\n" << evStr << "\n  ]\n}\n";
+    } else {
+      std::ostringstream ss;
+      ss << existingFile.rdbuf();
+      existingFile.close();
+      std::string content = ss.str();
+      auto pos = content.rfind(']');
+      if (pos != std::string::npos) content.resize(pos);
+      std::ofstream out("LST_output.json");
+      out << content << ",\n" << evStr << "\n  ]\n}\n";
+    }
+  }
+  */
   for (unsigned int i = 0; i < nTrackCandidates; i++) {
     auto iType = lstOutput_view.trackCandidateType()[i];
     LogDebug("LSTOutputConverter") << " cand " << i << " " << iType << " " << lstOutput_view.pixelSeedIndex()[i];
@@ -165,13 +255,13 @@ void LSTOutputConverter::produce(edm::Event& iEvent, const edm::EventSetup& iSet
         recHits.push_back(hit.clone());
     }
 
-    // The pixel hits are packed into first kPixelLayerSlots layer slots.
+    // The pixel hits are packed into first kPixelLayerSlots layer slots. // YY: this part has major changes, in previous code nHits for each type is fixed so there is a switch function, here has a layerSlot loop... idk the details
     for (unsigned int layerSlot = lst::Params_TC::kPixelLayerSlots; layerSlot < lst::Params_TC::kLayers; ++layerSlot) {
       for (unsigned int hitSlot = 0; hitSlot < lst::Params_TC::kHitsPerLayer; ++hitSlot) {
         unsigned int hitIdx = lstOutput_view.hitIndices()[i][layerSlot][hitSlot];
         if (hitIdx == lst::kTCEmptyHitIdx)
           continue;
-        recHits.push_back(OTHits[hitIdx]->clone());
+        recHits.push_back(OTHits[hitIdx]->clone()); // YY: this is previous code: recHits.push_back(OTHits[lstOutput_view.hitIndices()[i][j]]->clone());
       }
     }
 
@@ -261,7 +351,7 @@ void LSTOutputConverter::produce(edm::Event& iEvent, const edm::EventSetup& iSet
       PTrajectoryStateOnDet st =
           trajectoryStateTransform::persistentState(tsosPair.first, recHits[0].det()->geographicalId().rawId());
 
-      if (!includeT5s_ && (iType == lst::LSTObjType::T5 || iType == lst::LSTObjType::T4))
+      if (!includeT5s_ && (iType == lst::LSTObjType::T5 || iType == lst::LSTObjType::T4)) // YY: it now includes T4
         continue;
 
       auto tc = TrackCandidate(recHits, seed, st, seedRef);

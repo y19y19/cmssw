@@ -76,6 +76,10 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
   }
 
   void LSTInputProducer::produce(edm::StreamID iID, device::Event& iEvent, const device::EventSetup& iSetup) const {
+
+    // YY: break point
+    std::cout << "YY: Start LSTInputProducer::produce" << std::endl;
+
     // Get the phase2OTRecHits
     auto const& phase2OTHits = iEvent.get(phase2OTRecHitToken_);
 
@@ -201,6 +205,71 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
       }
     }
 
+    /*
+    std::cout << "YY: Input: " << std::endl;
+    std::cout << "see_px : size "   << see_px.size()
+              << " first element: " << see_px.front()
+              << " last element "   << see_px.back() << std::endl;
+    std::cout << "see_py : size "   << see_py.size()
+              << " first element: " << see_py.front() 
+              << " last element "   << see_py.back() << std::endl;
+    std::cout << "see_pz : size "   << see_pz.size()
+              << " first element: " << see_pz.front() 
+              << " last element "   << see_pz.back() << std::endl;
+    std::cout << "see_dxy : size "  << see_dxy.size()
+              << " first element: " << see_dxy.front() 
+              << " last element "   << see_dxy.back() << std::endl;
+    std::cout << "see_dz : size "   << see_dz.size()
+              << " first element: " << see_dz.front() 
+              << " last element "   << see_dz.back() << std::endl;
+    std::cout << "see_ptErr : size "<< see_ptErr.size()
+              << " first element: " << see_ptErr.front() 
+              << " last element "   << see_ptErr.back() << std::endl;
+    std::cout << "see_etaErr : size " << see_etaErr.size()
+              << " first element: " << see_etaErr.front() 
+              << " last element "   << see_etaErr.back() << std::endl;
+    std::cout << "see_stateTrajGlbX : size "   << see_stateTrajGlbX.size()
+              << " first element: " << see_stateTrajGlbX.front()
+              << " last element "   << see_stateTrajGlbX.back() << std::endl; 
+    std::cout << "see_stateTrajGlbY : size "   << see_stateTrajGlbY.size()
+              << " first element: " << see_stateTrajGlbY.front()
+              << " last element "   << see_stateTrajGlbY.back() << std::endl; 
+    std::cout << "see_stateTrajGlbZ : size "   << see_stateTrajGlbZ.size()
+              << " first element: " << see_stateTrajGlbZ.front()
+              << " last element "   << see_stateTrajGlbZ.back() << std::endl; 
+    std::cout << "see_stateTrajGlbPx : size "   << see_stateTrajGlbPx.size()
+              << " first element: " << see_stateTrajGlbPx.front()
+              << " last element "   << see_stateTrajGlbPx.back() << std::endl;
+    std::cout << "see_stateTrajGlbPy : size "   << see_stateTrajGlbPy.size()
+              << " first element: " << see_stateTrajGlbPy.front()
+              << " last element "   << see_stateTrajGlbPy.back() << std::endl; 
+    std::cout << "see_stateTrajGlbPz : size "   << see_stateTrajGlbPz.size()
+              << " first element: " << see_stateTrajGlbPz.front()
+              << " last element "   << see_stateTrajGlbPz.back() << std::endl;
+    std::cout << "see_q : size "   << see_q.size()
+              << " first element: " << see_q.front()
+              << " last element "   << see_q.back() << std::endl;
+    std::cout << "see_hitIdx : size "   << see_hitIdx.size()
+              << " first element size: " << see_hitIdx.front().size()
+              << " last element size"   << see_hitIdx.back().size() << std::endl;
+    std::cout << "ph2_detId : size "   << ph2_detId.size()
+              << " first element: " << ph2_detId.front()
+              << " last element "   << ph2_detId.back() << std::endl;
+    std::cout << "ph2_clustSize : size "   << ph2_clustSize.size()
+              << " first element: " << ph2_clustSize.front()
+              << " last element "   << ph2_clustSize.back() << std::endl;
+    std::cout << "ph2_x : size "   << ph2_x.size()
+              << " first element: " << ph2_x.front()
+              << " last element "   << ph2_x.back() << std::endl;
+    std::cout << "ph2_y : size "   << ph2_y.size()
+              << " first element: " << ph2_y.front()
+              << " last element "   << ph2_y.back() << std::endl;
+    std::cout << "ph2_z : size "   << ph2_z.size()
+              << " first element: " << ph2_z.front()
+              << " last element "   << ph2_z.back() << std::endl;
+    std::cout << "ptCut : value "   << ptCut_ << std::endl;   
+    */
+
     auto lstInputHC = lst::prepareInput(see_px,
                                         see_py,
                                         see_pz,
@@ -217,7 +286,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
                                         see_q,
                                         see_hitIdx,
                                         see_hitType,
-                                        {},
+                                        {}, // see_algo
                                         ph2_detId,
                                         ph2_clustSize,
                                         ph2_x,

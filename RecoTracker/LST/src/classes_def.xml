@@ -1,0 +1,9 @@
+<lcgdict>
+  <!-- the vector of it -->
+  <class name="std::vector<edm::StdArray<edm::StdArray<unsigned int,2>,13>>"/>
+  <!-- the wrapper for persistence -->
+  <class name="edm::Wrapper<std::vector<edm::StdArray<edm::StdArray<unsigned int,2>,13>>>"/>
+  <!-- signed char -->
+  <class name="std::vector<signed char>"/>
+  <class name="edm::Wrapper<std::vector<signed char>>"/>
+</lcgdict>
