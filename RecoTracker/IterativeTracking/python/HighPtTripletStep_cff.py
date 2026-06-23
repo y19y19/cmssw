@@ -259,9 +259,17 @@ trackingPhase2PU140.toModify(highPtTripletStepTrackCandidates,
     phase2clustersToSkip = 'highPtTripletStepClusters'
 )
 
+from Configuration.ProcessModifiers.trackingLSTSonicTriton_cff import trackingLSTSonicTriton
+
 from Configuration.ProcessModifiers.trackingLST_cff import trackingLST
 from RecoTracker.LST.lstOutputConverter_cfi import lstOutputConverter as _lstOutputConverter
+
+trackingLSTSonicTriton.toModify(_lstOutputConverter,
+    lstOutput    = 'lstsonicOutputConverter'
+)
+
 (trackingPhase2PU140 & trackingLST).toReplaceWith(highPtTripletStepTrackCandidates, _lstOutputConverter.clone())
+
 
 #For FastSim phase1 tracking 
 import FastSimulation.Tracking.TrackCandidateProducer_cfi
@@ -420,12 +428,12 @@ _HighPtTripletStepTask_trackingMkFit = HighPtTripletStepTask.copy()
 _HighPtTripletStepTask_trackingMkFit.add(highPtTripletStepTrackCandidatesMkFitSeeds, highPtTripletStepTrackCandidatesMkFit, highPtTripletStepTrackCandidatesMkFitConfig)
 trackingMkFitHighPtTripletStep.toReplaceWith(HighPtTripletStepTask, _HighPtTripletStepTask_trackingMkFit)
 
-_HighPtTripletStepTask_Phase2PU140 = HighPtTripletStepTask.copy()
-_HighPtTripletStepTask_Phase2PU140.replace(highPtTripletStep, highPtTripletStepSelector)
+_HighPtTripletStepTask_Phase2PU140 = HighPtTripletStepTask.copy() # YY: related
+_HighPtTripletStepTask_Phase2PU140.replace(highPtTripletStep, highPtTripletStepSelector) # YY: related, replace the last step
 _HighPtTripletStep_Phase2PU140 = cms.Sequence(_HighPtTripletStepTask_Phase2PU140)
-trackingPhase2PU140.toReplaceWith(HighPtTripletStepTask, _HighPtTripletStepTask_Phase2PU140)
+trackingPhase2PU140.toReplaceWith(HighPtTripletStepTask, _HighPtTripletStepTask_Phase2PU140) # YY: related
 
-_HighPtTripletStepTask_LST = HighPtTripletStepTask.copy()
+_HighPtTripletStepTask_LST = HighPtTripletStepTask.copy() # YY: I assume it is after the replacement happened in the previous lines
 from RecoLocalTracker.Phase2TrackerRecHits.Phase2TrackerRecHits_cfi import siPhase2RecHits
 from RecoTracker.LST.lstSeedTracks_cff import lstInitialStepSeedTracks,lstHighPtTripletStepSeedTracks
 from RecoTracker.LST.lstInputProducer_cfi import lstInputProducer
@@ -434,6 +442,15 @@ from RecoTracker.LST.lstProducerTask_cff import *
 _HighPtTripletStepTask_LST.add(siPhase2RecHits, lstInitialStepSeedTracks, lstHighPtTripletStepSeedTracks, lstInputProducer,
                                lstProducerTask, highPtTripletStepLSTpTracks, highPtTripletStepLSTT4T5Tracks, highPtTripletStepSelectorLSTT4T5)
 (trackingPhase2PU140 & trackingLST).toReplaceWith(HighPtTripletStepTask, _HighPtTripletStepTask_LST)
+
+# SONIC LST
+#from Configuration.ProcessModifiers.trackingLSTSonicTriton_cff import trackingLSTSonicTriton
+from RecoTracker.LST.lstSONICProducerTask_cff import *
+
+_HighPtTripletStepTask_LST_SONIC = HighPtTripletStepTask.copy()
+_HighPtTripletStepTask_LST_SONIC.add(siPhase2RecHits, lstInitialStepSeedTracks, lstHighPtTripletStepSeedTracks, lstInputProducer, lstSONICProducerTask, highPtTripletStepLSTpTracks, highPtTripletStepLSTT4T5Tracks, highPtTripletStepSelectorLSTT4T5) # add those LST specific steps
+(trackingPhase2PU140 & trackingLST & trackingLSTSonicTriton).toReplaceWith(HighPtTripletStepTask, _HighPtTripletStepTask_LST_SONIC)
+# end SONIC LST
 
 from Configuration.ProcessModifiers.alpakaValidationLST_cff import alpakaValidationLST
 from HeterogeneousCore.AlpakaCore.functions import makeSerialClone
