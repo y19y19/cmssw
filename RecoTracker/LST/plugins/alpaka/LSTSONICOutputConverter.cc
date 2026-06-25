@@ -50,7 +50,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
       auto lstTrackCandidates = lstOutputHC.view();
       //std::memcpy(lstTrackCandidates.nTrackCandidates(), nTrackCandidates, 1.0 * sizeof(unsigned int));
       std::memcpy(lstTrackCandidates.pixelSeedIndex().data(), pixelSeedIndex.data(), pixelSeedIndex.size() * sizeof(unsigned int));
-      std::memcpy(lstTrackCandidates.trackCandidateType().data(), trackCandidateType.data(), trackCandidateType.size() * sizeof(short)); // YY: using this instead of copy_n because it cannot figure out the size of trackCandidateType by itself
+      std::memcpy(lstTrackCandidates.trackCandidateType().data(), trackCandidateType.data(), trackCandidateType.size() * sizeof(int8_t)); // YY: using this instead of copy_n because it cannot figure out the size of trackCandidateType by itself
       std::memcpy(lstTrackCandidates.hitIndices().data(), hitIndices_2D.data(), hitIndices_2D.size() * sizeof(lst::Params_TC::ArrayUxHits)); // If does not work, use kHits * sizeof(unsigned int)
       lstTrackCandidates.nTrackCandidates() = nTrackCandidates;
       //std::copy_n(pixelSeedIndex.data(), pixelSeedIndex.size(), lstTrackCandidates.pixelSeedIndex().data()); // YY: std::copy_n(src, n, dst);
